@@ -1,0 +1,127 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include<stdio.h>
+#include<string.h>
+#include<stdlib.h>
+
+#define NEPRONADEN_ELEMENT (-1)
+#define NAZIVNIK_JE_0 (-1)
+#define MAKSIMALAN_BROJ_ZNAKOVA (12)
+#define MEMORIJA_NIJE_ALOCIRANA (-1)
+
+typedef struct Element* Pozicija;
+typedef struct Element {
+	float broj;
+	Pozicija Next;
+}Element;
+
+int RacunanjePostfix(char*);
+int Push(float, Pozicija);
+int Pop(float*, Pozicija);
+int BrisiSve(Pozicija);
+
+int main() {
+	char* postfix = "postfix.txt";
+	RacunanjePostfix(postfix);
+	return EXIT_SUCCESS;
+}
+
+int RacunanjePostfix(char* imedatoteke) {
+	Element Head = {
+		.broj = 0.0f,
+		.Next = NULL
+	};
+	FILE* fp = NULL;
+	char buffer[MAKSIMALAN_BROJ_ZNAKOVA] = { 0 };
+	int rezultat = 0;
+	float broj1 = 0.0f;
+	float broj2 = 0.0f;
+
+	fp = fopen(imedatoteke, "r");
+	if (fp == NULL) {
+		printf("Datoteka nije pronadena");
+		return NEPRONADEN_ELEMENT;
+	}
+	while (feof != 0) {
+		fscanf(fp, " %s", buffer);
+		int broj = 0;
+		rezultat = sscanf(buffer, " %d", &broj);
+
+		if (rezultat == 1) {
+			Push(broj, &Head);
+		}
+		else {
+			if (strcmp(buffer, "+") == 0) {
+				Pop(&broj2, &Head);
+				Pop(&broj1, &Head);
+				Push(broj1 + broj2, &Head);
+			}
+			else if (strcmp(buffer, "-") == 0) {
+				Pop(&broj2, &Head);
+				Pop(&broj1, &Head);
+				Push(broj1 - broj2, &Head);
+			}
+			else if (strcmp(buffer, "*") == 0) {
+				Pop(&broj2, &Head);
+				Pop(&broj1, &Head);
+				Push(broj1 * broj2, &Head);
+			}
+			else if (strcmp(buffer, "/") == 0) {
+				Pop(&broj2, &Head);
+				Pop(&broj1, &Head);
+				if (broj2 == 0) {
+					printf("Nazivnik ne smije biti nula!\n");
+					return NAZIVNIK_JE_0;
+				}
+				Push(broj1 / broj2, &Head);
+			}
+
+		}
+	}
+		if (Head.Next->Next == NULL) {
+			Pop(&broj1, &Head);
+			printf("Rezultat postfixa je: %lf", broj1);
+		}
+		else {
+			printf("Greska!\n");
+		}
+		BrisiSve(&Head);
+		return EXIT_SUCCESS;
+	
+}
+
+int Push(float noviBroj, Pozicija p) {
+	Pozicija q = NULL;
+	q = (Pozicija)malloc(sizeof(Element));
+	if (q == NULL) {
+		printf("Memorija nije alocirana\n");
+		return MEMORIJA_NIJE_ALOCIRANA;
+	}
+	q->broj = noviBroj;
+	q->Next = p->Next;
+	q = p->Next;
+
+	return EXIT_SUCCESS;
+}
+int Pop(float* vadiBroj, Pozicija p) {
+	Pozicija q = NULL;
+	q = (Pozicija)malloc(sizeof(Element));
+	if (q == NULL) {
+		printf("Memorija nije alocirana\n");
+		return MEMORIJA_NIJE_ALOCIRANA;
+	}
+	q = p->Next;
+	*vadiBroj = q->broj;
+	p->Next = q->Next;
+
+	free(q);
+	return EXIT_SUCCESS;
+}
+BrisiSve(Pozicija p) {
+	Pozicija temp = NULL;
+	while (p->Next != NULL) {
+		temp = p->Next;
+		p->Next = p->Next->Next;
+		free(temp);
+	}
+	return EXIT_SUCCESS;
+}
